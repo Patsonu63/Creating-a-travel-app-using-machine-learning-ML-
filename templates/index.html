@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel App</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>Welcome to the Travel App</h1>
+
+    <h2>Get Personalized Recommendations</h2>
+    <form id="recommendation-form">
+        Budget: <input type="number" id="budget" placeholder="Enter your budget"><br>
+        Interests: <input type="text" id="interests" placeholder="e.g., beach, history"><br>
+        <button type="button" onclick="getRecommendations()">Submit</button>
+    </form>
+    <div id="recommendations"></div>
+
+    <h2>Predict Flight Prices</h2>
+    <form id="price-form">
+        Origin: <input type="text" id="origin" placeholder="e.g., NYC"><br>
+        Destination: <input type="text" id="destination" placeholder="e.g., LAX"><br>
+        Days to Departure: <input type="number" id="days-to-departure"><br>
+        <button type="button" onclick="predictPrice()">Submit</button>
+    </form>
+    <div id="price-prediction"></div>
+
+    <h2>Plan Your Itinerary</h2>
+    <form id="itinerary-form">
+        Destination: <input type="text" id="destination-itinerary" placeholder="e.g., Paris"><br>
+        Duration: <input type="number" id="duration" placeholder="e.g., 5 days"><br>
+        <button type="button" onclick="planItinerary()">Submit</button>
+    </form>
+    <div id="itinerary"></div>
+
+    <script>
+        async function getRecommendations() {
+            const budget = document.getElementById('budget').value;
+            const interests = document.getElementById('interests').value.split(',');
+            const response = await fetch('/recommendations', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ budget: parseInt(budget), interests })
+            });
+            const data = await response.json();
+            document.getElementById('recommendations').innerText = `Recommended Destinations: ${data.destinations.join(', ')}`;
+        }
+
+        async function predictPrice() {
+            const origin = document.getElementById('origin').value;
+            const destination = document.getElementById('destination').value;
+            const daysToDeparture = document.getElementById('days-to-departure').value;
+            const response = await fetch('/predict_price', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ origin, destination, days_to_departure: parseInt(daysToDeparture) })
+            });
+            const data = await response.json();
+            document.getElementById('price-prediction').innerText = `Predicted Price: $${data.predicted_price}`;
+        }
+
+        async function planItinerary() {
+            const destination = document.getElementById('destination-itinerary').value;
+            const duration = document.getElementById('duration').value;
+            const response = await fetch('/plan_itinerary', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ destination, duration: parseInt(duration) })
+            });
+            const data = await response.json();
+            let itineraryHTML = '';
+            for (const [day, activity] of Object.entries(data.itinerary)) {
+                itineraryHTML += `<p>${day}: ${activity}</p>`;
+            }
+            document.getElementById('itinerary').innerHTML = itineraryHTML;
+        }
+    </script>
+</body>
+</html>
